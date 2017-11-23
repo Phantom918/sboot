@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="htmlhead">
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+    <link rel="shortcut icon" type="image/png" th:href="@{../static/images/favicon.png}"/>
+    <title>测试</title>
+    <link th:href="@{/webjars/bootstrap/4.0.0-beta/dist/css/bootstrap.css}" rel="stylesheet"/>
+    <link th:href="@{/css/starter.css}" rel="stylesheet"/>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <h1 th:inline="text" th:attr="name=${name}">Hello.v.2</h1>
+            <button th:text="${title}" type="button" class="btn btn-info btn-block"></button>
+        </div>
+    </div>
+
+</body>
+</html>

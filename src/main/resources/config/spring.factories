@@ -1,0 +1,17 @@
+org.springframework.context.ApplicationListener=com.phantom.springboot.web.interceptor.MyInterceptor
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
