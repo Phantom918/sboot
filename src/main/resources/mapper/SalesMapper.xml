@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.phantom.sboot.dao.SalesMapper">
+	<resultMap id="salesMap" type="com.phantom.sboot.entity.Sales">
+		<result column="regionId" property="regionId"/>
+		<result column="regionName" property="regionName"/>
+		<result column="modelId" property="modelId"/>
+		<result column="modelName" property="modelName"/>
+		<result column="send" property="send"/>
+		<result column="sell" property="sell"/>
+		<result column="act" property="act"/>
+		<result column="repair" property="repair"/>
+		<result column="date" property="date"/>
+		<result column="year" property="year"/>
+		<result column="month" property="month"/>
+		<result column="season" property="season"/>
+		<result column="phone0" property="phone0"/>
+		<result column="phone1" property="phone1"/>
+		<result column="phone2" property="phone2"/>
+		<result column="phone3" property="phone3"/>
+		<result column="phone4" property="phone4"/>
+		<result column="phone5" property="phone5"/>
+		<result column="phone6" property="phone6"/>
+		<result column="phone7" property="phone7"/>
+		<result column="phone8" property="phone8"/>
+		<result column="phone9" property="phone9"/>
+		<result column="phone10" property="phone10"/>
+	</resultMap>
+
+	<select id="getAreaSales"  parameterType="com.phantom.sboot.entity.Sales" resultType="java.util.List" resultMap="salesMap">
+		SELECT * from (
+			(
+				SELECT
+					IFNULL(NULL, '中国') AS regionName,
+					sum(s.send) send,
+					sum(s.sell) sell,
+					sum(s.act) act,
+					sum(s.`repair`) repair
+				FROM send_fact s
+				WHERE s.region_id IN ( SELECT d.id FROM region_dim d WHERE d.oversea = 'n')
+				AND ( s.date BETWEEN #{startDate} AND #{endDate} )
+			)
+			UNION
+				(
+					SELECT r.ch_name regionName, tb.send, tb.sell, tb.act, tb.repair
+					FROM
+						(
+							SELECT
+								s.region_id regionId,
+								sum(s.send) send,
+								sum(s.sell) sell,
+								sum(s.act) act,
+								sum(s.`repair`) repair
+							FROM send_fact s
+							WHERE s.region_id IN ( SELECT d.id FROM region_dim d WHERE d.oversea = 'y' )
+							AND ( s.date BETWEEN #{startDate} AND #{endDate} )
+							GROUP BY s.region_id
+						) tb
+					LEFT JOIN region_dim r ON tb.regionId = r.id
+				)
+			) temp
+			ORDER BY temp.send DESC
+	</select>
+
+	<select id="getAreaChildSales"  parameterType="com.phantom.sboot.entity.Sales" resultType="java.util.List" resultMap="salesMap">
+		SELECT r.ch_name regionName, tb.regionId, tb.send, tb.sell, tb.act, tb.repair
+		FROM
+			(
+				SELECT
+				s.region_id regionId,
+				sum(s.send) send,
+				sum(s.sell) sell,
+				sum(s.act) act,
+				sum(s.`repair`) repair
+				FROM send_fact s
+				WHERE s.region_id IN ( SELECT d.id FROM region_dim d WHERE d.oversea = 'n' )
+				AND ( s.date BETWEEN #{startDate} AND #{endDate} )
+				GROUP BY s.region_id
+			) tb
+		LEFT JOIN region_dim r ON tb.regionId = r.id
+		ORDER BY tb.send DESC
+	</select>
+
+	<select id="getAreaModelSales"  parameterType="com.phantom.sboot.entity.Sales" resultType="java.util.List" resultMap="salesMap">
+		select * from
+		(
+			select
+			m.modelname,
+			sum(rb.send) send,
+			sum(rb.sell) sell,
+			sum(rb.act) act,
+			sum(rb.`repair`) repair
+			from
+			(
+				SELECT
+				s.model_id modelId,
+				sum(s.send) send,
+				sum(s.sell) sell,
+				sum(s.act) act,
+				sum(s.`repair`) repair
+				FROM send_fact s
+				WHERE s.date BETWEEN #{startDate} AND #{endDate}
+				AND s.region_id = #{regionId}
+				GROUP BY s.model_id
+			) rb
+			LEFT JOIN model_dim m ON rb.modelId = m.id
+			GROUP BY m.modelname
+		) tb
+		ORDER BY tb.send DESC, tb.sell DESC
+	</select>
+
+	<select id="getModelSales"  parameterType="com.phantom.sboot.entity.Sales" resultType="java.util.List" resultMap="salesMap">
+		select * from
+		(
+			select
+			m.modelname,
+			sum(rb.send) send,
+			sum(rb.sell) sell,
+			sum(rb.act) act,
+			sum(rb.`repair`) repair
+			from
+			(
+				SELECT
+				s.model_id modelId,
+				sum(s.send) send,
+				sum(s.sell) sell,
+				sum(s.act) act,
+				sum(s.`repair`) repair
+				FROM send_fact s
+				WHERE s.date BETWEEN #{startDate} AND #{endDate}
+				GROUP BY s.model_id
+			) rb
+			LEFT JOIN model_dim m ON rb.modelId = m.id
+			GROUP BY m.modelname
+		) tb
+		ORDER BY tb.send DESC, tb.sell DESC
+	</select>
+
+	<select id="getModelAreaSales"  parameterType="com.phantom.sboot.entity.Sales" resultType="java.util.List" resultMap="salesMap">
+		SELECT * FROM
+			(
+				(
+					SELECT
+						IFNULL(NULL, '中国') AS regionName,
+						sum(s.send) send,
+						sum(s.sell) sell,
+						sum(s.act) act,
+						sum(s.`repair`) REPAIR
+					FROM send_fact s
+					WHERE s.region_id IN (SELECT d.id FROM region_dim d WHERE d.oversea = 'n')
+					AND (s.date BETWEEN #{startDate} AND #{endDate})
+					AND s.model_id in (select m.id from model_dim m where m.modelname = #{modelName})
+				)
+				UNION
+					(
+						SELECT r.ch_name regionName,tb.send,tb.sell,tb.act,tb.REPAIR
+						FROM
+							(
+								SELECT
+									s.region_id regionId,
+									sum(s.send) send,
+									sum(s.sell) sell,
+									sum(s.act) act,
+									sum(s.`repair`) REPAIR
+								FROM send_fact s
+								WHERE s.region_id IN ( SELECT d.id FROM region_dim d WHERE d.oversea = 'y' )
+								AND ( s.date BETWEEN #{startDate} AND #{endDate})
+								AND s.model_id in (select m.id from model_dim m where m.modelname = #{modelName})
+								GROUP BY s.region_id
+							) tb
+						LEFT JOIN region_dim r ON tb.regionId = r.id
+					)
+			) temp
+		ORDER BY temp.send DESC
+	</select>
+
+	<select id="getModelChildSales"  parameterType="com.phantom.sboot.entity.Sales" resultType="java.util.List" resultMap="salesMap">
+		SELECT r.ch_name regionName, tb.regionId, tb.send, tb.sell, tb.act, tb.repair
+		FROM
+			(
+				SELECT
+				s.region_id regionId,
+				sum(s.send) send,
+				sum(s.sell) sell,
+				sum(s.act) act,
+				sum(s.`repair`) repair
+				FROM send_fact s
+				WHERE s.region_id IN ( SELECT d.id FROM region_dim d WHERE d.oversea = 'n' )
+				AND ( s.date BETWEEN #{startDate} AND #{endDate} )
+				AND s.model_id in (select m.id from model_dim m where m.modelname = #{modelName})
+				GROUP BY s.region_id
+			) tb
+		LEFT JOIN region_dim r ON tb.regionId = r.id
+		ORDER BY tb.send DESC
+	</select>
+
+	<select id="getChartYear"  parameterType="com.phantom.sboot.entity.Sales" resultType="java.util.List" resultMap="salesMap">
+		SELECT
+		<if test='chartType == "y"'>year(s.date) time,</if>
+		<if test='chartType == "m"'>month(s.date) time,</if>
+		<if test='chartType == "s"'>quarter(s.date) time,</if>
+		sum(s.send) send,
+		sum(s.sell) sell,
+		sum(s.act) act,
+		sum(s.`repair`) repair
+		FROM send_fact s
+		WHERE (s.date BETWEEN #{startDate} AND #{endDate} )
+		<if test='countryType == "c"'>
+			AND s.region_id IN ( SELECT d.id FROM region_dim d WHERE d.oversea = 'n')
+		</if>
+		<if test='countryType == "f"'>
+			AND s.region_id IN ( SELECT d.id FROM region_dim d WHERE d.oversea = 'y')
+		</if>
+		<if test='chartType == "y"'>GROUP BY year(s.date)</if>
+		<if test='chartType == "m"'>GROUP BY month(s.date)</if>
+		<if test='chartType == "s"'>GROUP BY quarter(s.date)</if>
+	</select>
+
+	<select id="getHotModelSales"  parameterType="com.phantom.sboot.entity.Sales" resultType="java.util.List" resultMap="salesMap">
+		select * from
+		(
+			SELECT m.id modelId, m.modelname,
+			sum(tb.send) send,
+			sum(tb.sell) sell,
+			sum(tb.act) act,
+			sum(tb.`repair`) repair
+			FROM
+			( SELECT
+				s.model_id modelId,
+				sum(s.send) send,
+				sum(s.sell) sell,
+				sum(s.act) act,
+				sum(s.`repair`) repair
+				FROM send_fact s
+				WHERE s.date BETWEEN #{startDate} AND #{endDate}
+				GROUP BY s.model_id
+			) tb
+				LEFT JOIN model_dim m ON tb.modelId = m.id
+				GROUP BY m.modelname
+		) tb
+			ORDER BY tb.sell DESC
+			LIMIT 10
+	</select>
+
+	<select id="getNewPhone"  parameterType="com.phantom.sboot.entity.Sales" resultType="java.util.List" resultMap="salesMap">
+		select m.modelname from
+		(
+		SELECT s1.modelId FROM
+		(
+		SELECT s.model_id modelId
+		FROM send_fact s
+		WHERE s.model_id is not null
+		AND s.send > 0
+		and s.date between #{startDate} AND #{endDate}
+		GROUP BY s.model_id
+		) s1
+		WHERE s1.modelId NOT in (
+		SELECT s.model_id modelId
+		FROM send_fact s
+		WHERE s.model_id is not null
+		and s.date &lt; #{startDate}
+		GROUP BY s.model_id
+		)
+		) km
+		left JOIN model_dim m on km.modelId = m.id
+		WHERE m.oversea = 'n'
+		GROUP BY m.modelname
+	</select>
+
+	<select id="getNewPhoneSales"  parameterType="java.util.HashMap" resultType="java.util.List" resultMap="salesMap">
+		SELECT r.ch_name regionName, tb.*
+		FROM
+			(
+				SELECT
+				s.region_id regionId,
+				sum(s.sell) sell,
+				<foreach item="item" index="index" collection="phoneType" open="" separator="," close="">
+					sum(case m.modelname when #{item} THEN s.sell end) as phone#{index}
+				</foreach>
+				FROM send_fact s
+				LEFT JOIN model_dim m on s.model_id = m.id
+				WHERE s.region_id IN ( SELECT d.id FROM region_dim d WHERE d.oversea = 'n' )
+				AND s.date BETWEEN #{startDate} AND #{endDate}
+				GROUP BY s.region_id
+			) tb
+		LEFT JOIN region_dim r ON tb.regionId = r.id
+		ORDER BY tb.sell DESC
+	</select>
+
+</mapper>

@@ -2,9 +2,10 @@ package com.phantom.sboot.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.phantom.sboot.config.DsConfig.DS;
 import com.phantom.sboot.entity.User;
 import com.phantom.sboot.dao.UserMapper;
-import com.phantom.sboot.service.UserMapperService;
+import com.phantom.sboot.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @Modifiy:
  */
 @Service
-public class UserMapperServiceImpl implements UserMapperService {
+public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserMapper userMapper;
@@ -29,6 +30,7 @@ public class UserMapperServiceImpl implements UserMapperService {
     }
 
     @Override
+    @DS(value = "ds1")
     public User getOne(Long id) {
         return userMapper.getOne(id);
     }

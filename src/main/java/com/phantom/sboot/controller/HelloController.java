@@ -2,8 +2,10 @@ package com.phantom.sboot.controller;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageInfo;
+import com.phantom.sboot.entity.Sales;
 import com.phantom.sboot.entity.User;
-import com.phantom.sboot.service.UserMapperService;
+import com.phantom.sboot.service.SalesService;
+import com.phantom.sboot.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -26,8 +29,11 @@ import java.util.UUID;
 public class HelloController {
 
     @Autowired
-    private UserMapperService userMapperService;
-
+    private UserService userService;
+    
+    @Autowired
+    private SalesService salesService;
+    
     @RequestMapping("/hello")
     public String index() {
         return "Hello World <-:->";
@@ -38,7 +44,7 @@ public class HelloController {
     @Cacheable(value = "key-user")
     public User getUser(@PathVariable(name = "id") long id) {
         log.debug("第一次未调用缓存。。。。");
-        return userMapperService.getOne(id);
+        return userService.getOne(id);
     }
 
     @ResponseBody
@@ -46,7 +52,7 @@ public class HelloController {
     @Cacheable(value="key-users") // 放进redis缓存
     public PageInfo<User> getUsers(@PathVariable(name = "pageNum") int pageNum, @PathVariable(name = "pageSize") int pageSize) {
         log.debug("第一次未调用缓存。。。。");
-        Page<User> users = userMapperService.getAll(pageNum, pageSize);
+        Page<User> users = userService.getAll(pageNum, pageSize);
         // 需要把Page包装成PageInfo对象才能序列化。该插件也默认实现了一个PageInfo
         PageInfo<User> pageInfo = new PageInfo<User>(users);
         log.debug("pageInfo====" + pageInfo.toString());
@@ -58,7 +64,7 @@ public class HelloController {
     @Cacheable(value = "key-user")
     public boolean addUser(User user) {
         log.debug("第一次未调用缓存。。。。");
-        return userMapperService.insert(user) == 1 ? true : false;
+        return userService.insert(user) == 1 ? true : false;
     }
 
 
@@ -89,6 +95,14 @@ public class HelloController {
         return "user/userAdd";
     }
 
-
+    @ResponseBody
+    @RequestMapping("/getAreaChildSales")
+    //@Cacheable(value="key-sales") // 放进redis缓存
+    public List<Sales> getAreaChildSales(Sales sales) {
+        log.debug("第一次未调用缓存。。。。");
+        List<Sales> salesList = salesService.getAreaChildSales(sales);
+        log.debug("salesList.size()====" + salesList.size());
+        return salesList;
+    }
 
 }

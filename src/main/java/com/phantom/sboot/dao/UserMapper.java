@@ -5,12 +5,11 @@ import com.phantom.sboot.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
 
-
 @Mapper //@MapperScan("com.phantom.sboot.dao")//在启动的application类上面为所有路径下添加扫描
 public interface UserMapper {
 
 	Page<User> getAll();
-	
+
 	User getOne(Long id);
 
 	/*设数据库表的ID主键是自增长的，添加一条数据要得到自增长的ID:

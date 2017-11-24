@@ -1,7 +1,7 @@
 package com.phantom.sboot.jersey;
 
 import com.phantom.sboot.entity.User;
-import com.phantom.sboot.service.UserMapperService;
+import com.phantom.sboot.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -24,7 +24,7 @@ import javax.ws.rs.core.MediaType;
 public class UserServer {
 
     @Autowired
-    private UserMapperService userMapperService;
+    private UserService userMapperService;
 
     @GET
     @Path("/getUser/{id}")

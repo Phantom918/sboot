@@ -9,7 +9,7 @@ import com.phantom.sboot.entity.User;
  * @Date: Create in 11:35 2017/11/17
  * @Modifiy:
  */
-public interface UserMapperService {
+public interface UserService {
 
     Page<User> getAll(int pageNum, int pageSize);
 
